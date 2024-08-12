@@ -7,9 +7,11 @@ pg.display.set_caption('Snake Python')
 
 # Definições de cores
 PRETO = (0, 0, 0)
-BRANCO = (255, 255, 255)
-VERMELHO = (255, 0, 0)
 VERDE = (0, 255, 0)
+VERMELHO = (255, 0, 0)
+BRANCO = (255, 255, 255)
+VERMELHO_CLARO = (255, 99, 71)
+AZUL_CIELO = (135, 206, 250)
 VERDE_CLARO = (144, 238, 144)
 
 # Configurações da tela
@@ -97,8 +99,8 @@ class Jogo:
         self.contador_comidas = 0
 
     def desenhar_pontuacao(self):
-        fonte = pg.font.SysFont('Helvetica', 35)
-        texto = fonte.render(f'Pontos: {self.pontuacao}', True, VERMELHO)
+        fonte = pg.font.SysFont('Helvetica', 27)
+        texto = fonte.render(f'Pontos: {self.pontuacao}', True, VERMELHO_CLARO)
         TELA.blit(texto, [1, 1])
 
     def desenhar_bordas(self):
@@ -110,7 +112,7 @@ class Jogo:
 
     def mostrar_mensagem(self, mensagem):
         fonte = pg.font.SysFont('Helvetica', 50)
-        texto = fonte.render(mensagem, True, VERDE_CLARO)
+        texto = fonte.render(mensagem, True, VERMELHO_CLARO)
         largura_texto = texto.get_width()
         altura_texto = texto.get_height()
         x = (LARGURA - largura_texto) / 2
@@ -157,8 +159,67 @@ class Jogo:
         self.mostrar_mensagem(f'Você perdeu, você fez {self.pontuacao} pontos.')
         pg.time.wait(3000)  # Espera por 3 segundos antes de fechar o jogo
 
-# Executar o jogo
-Jogo().rodar()
+class TelaInicial:
+    def __init__(self):
+        self.fonte = pg.font.SysFont('Helvetica', 50)
+        self.espaco_vertical = 100
+        self.raio_botao = 80  # Aumentar o raio para garantir que o texto se encaixe melhor
 
-# Finalizar o Pygame
+    def desenhar_botao(self, texto, posicao, cor_fundo, cor_texto):
+        fonte = pg.font.SysFont('Helvetica', 40)
+        texto_renderizado = fonte.render(texto, True, cor_texto)
+        largura_texto = texto_renderizado.get_width()
+        altura_texto = texto_renderizado.get_height()
+        
+        # Desenho do botão redondo
+        x, y = posicao
+        centro_x = x
+        centro_y = y
+        
+        # Desenha o círculo de fundo
+        pg.draw.circle(TELA, cor_fundo, (centro_x, centro_y), self.raio_botao)
+        # Desenha a borda do círculo
+        pg.draw.circle(TELA, cor_texto, (centro_x, centro_y), self.raio_botao, 2)
+        
+        # Posiciona o texto no centro do botão
+        texto_x = centro_x - largura_texto // 2
+        texto_y = centro_y - altura_texto // 2
+        TELA.blit(texto_renderizado, (texto_x, texto_y))
+
+    def mostrar_tela(self):
+        clicou = False
+        while not clicou:
+            TELA.fill(AZUL_CIELO)
+            
+            posicao_mouse = pg.mouse.get_pos()
+            for evento in pg.event.get():
+                if evento.type == pg.QUIT:
+                    pg.quit()
+                    return 'sair'
+                elif evento.type == pg.MOUSEBUTTONDOWN and evento.button == 1:
+                    if self.botao_jogar.collidepoint(posicao_mouse):
+                        clicou = True
+                        return 'iniciar'
+                    elif self.botao_sair.collidepoint(posicao_mouse):
+                        pg.quit()
+                        return 'sair'
+            
+            # Atualiza as posições dos botões
+            self.botao_jogar = pg.Rect((LARGURA // 2 - self.raio_botao, ALTURA // 2 - 60 - self.espaco_vertical // 2), (self.raio_botao * 2, self.raio_botao * 2))
+            self.botao_sair = pg.Rect((LARGURA // 2 - self.raio_botao, ALTURA // 2 + self.espaco_vertical // 2), (self.raio_botao * 2, self.raio_botao * 2))
+            
+            # Desenha os botões na tela
+            self.desenhar_botao('Iniciar', (LARGURA // 2, ALTURA // 2 - 30 - self.espaco_vertical // 2), VERDE_CLARO, PRETO)
+            self.desenhar_botao('Sair', (LARGURA // 2, ALTURA // 2 + 30 + self.espaco_vertical // 2), VERDE_CLARO, PRETO)
+            
+            pg.display.update()
+
+# Executar a Tela Inicial
+tela_inicial = TelaInicial()
+opcao = tela_inicial.mostrar_tela()
+
+if opcao == 'iniciar':
+    jogo = Jogo()
+    jogo.rodar()
+
 pg.quit()
